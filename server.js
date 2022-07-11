@@ -36,14 +36,14 @@ app.get('/', (req, res) => {
 //add new task
 app.post('/add', (req, res) => {
 	//debug info
-	console.log(req.headers)
-	console.log(req.body);
+	//console.log(req.headers)
+	//console.log(req.body);
 	
 	//create new task
 	const nTask = {
 		'id': req.body.id,
 		'assignTo': '',
-		'callback': req.headers.cpee-callback
+		'callback': req.headers['cpee-callback']
 	};
 	var file = './data/tasklist.json';
 	var tasks = JSON.parse(fs.readFileSync(file).toString());
