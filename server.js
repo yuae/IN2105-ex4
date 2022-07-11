@@ -154,7 +154,7 @@ app.delete('/task/:id', (req, res) => {
 		console.log(tasks);
 		fs.writeFileSync(file, JSON.stringify(tasks));
 		axios
-		.post(dTask.callback, {
+		.put(dTask.callback, {
 			message: 'task removed'
 		})
 		.then(res => {
@@ -165,6 +165,9 @@ app.delete('/task/:id', (req, res) => {
 			console.error(error);
 		});
 		res.send("task deleted");
+	}
+	else{
+		res.send("task not found");
 	}
 
 	/*
