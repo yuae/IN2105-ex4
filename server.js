@@ -153,8 +153,9 @@ app.delete('/task/:id', (req, res) => {
 		tasks.splice(index,1);
 		//console.log(tasks);
 		fs.writeFileSync(file, JSON.stringify(tasks));
+		url = dTask['callback'];
 		const req = {
-			dTask['callback'],
+			url,
 			method: 'PUT',
 			data: {message: 'task did/refused'}
 		}
