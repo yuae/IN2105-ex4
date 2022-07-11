@@ -1,7 +1,7 @@
 // GLOBAL VARIABLES
 const results = document.getElementById('results');
-const uiURL = '/ui/';
-const taskURL = '/task/';
+const uiURL = '/ports/12345/ui/';
+const taskURL = '/ports/12345/task/';
 var matnr;
 
 const render = (tasks) => {
