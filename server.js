@@ -37,7 +37,7 @@ app.get('/', (req, res) => {
 app.post('/add', (req, res) => {
 	//debug info
 	//console.log(req.headers)
-	//console.log(req.body);
+	console.log('add');
 	
 	//create new task
 	const nTask = {
@@ -47,7 +47,7 @@ app.post('/add', (req, res) => {
 	};
 	var file = './data/tasklist.json';
 	var tasks = JSON.parse(fs.readFileSync(file).toString());
-	console.log(tasks);
+	//console.log(tasks);
 	tasks.push(nTask);
 	fs.writeFileSync(file, JSON.stringify(tasks));
 	res.send("New task added");
@@ -69,7 +69,7 @@ app.get('/ui', (req, res) => {
 });
 
 app.get('/ui/:id', (req, res) => {
-	console.log(req)
+	console.log('get')
 	const mat = req.params.id
 	const org = './orgmodel.xml';
 	let xmlDoc = fs.readFileSync(org, "utf8");
@@ -106,7 +106,7 @@ app.get('/ui/:id', (req, res) => {
 
 app.put('/task/:id', (req, res) => {
 	//debug info
-	console.log(req.body);
+	console.log('update');
 	const taskId = req.params.id;
 	const taskAssignee = req.body.assignTo;
 	console.log(`task ID = ${taskId} \n Assignee = ${taskAssignee}`);
@@ -135,7 +135,7 @@ app.put('/task/:id', (req, res) => {
 
 app.delete('/task/:id', (req, res) => {
 	//debug info
-	console.log(req.body);
+	console.log('delete');
 	const taskId = req.params.id;
 	var file = './data/tasklist.json';
 	var tasks = JSON.parse(fs.readFileSync(file).toString());
@@ -151,15 +151,15 @@ app.delete('/task/:id', (req, res) => {
 	if(found) {
 		dTask = tasks[index];
 		tasks.splice(index,1);
-		console.log(tasks);
+		//console.log(tasks);
 		fs.writeFileSync(file, JSON.stringify(tasks));
-		axios
-		.put(dTask.callback, {
-			message: 'task removed'
-		})
-		.then(res => {
+		const req = {
+			dTask['callback'],
+			method: 'PUT',
+			data: {message: 'task did/refused'}
+		}
+		axios(req).then(res => {
 			console.log(`statusCode: ${res.status}`);
-			console.log(res);
 		})
 		.catch(error => {
 			console.error(error);
