@@ -1,4 +1,8 @@
-<testers>
-	<tester id="03749751"/>
-	<tester id="00000000"/>
-</testers>
+<people>
+	<person id="03749751">
+		<role>tester</tester>
+	</person>
+	<person id="00000000">
+		<role>tester</role>
+	</person>
+</people>
