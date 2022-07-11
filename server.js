@@ -1,6 +1,7 @@
 // create server obj
 const express = require('express');
 const fs = require('fs');
+const axios = require('axios');
 const app = express();
 
 //body parser
@@ -35,17 +36,19 @@ app.get('/', (req, res) => {
 //add new task
 app.post('/add', (req, res) => {
 	//debug info
+	console.log(req.headers)
 	console.log(req.body);
 	
 	//create new task
-	const nTask = new TasksModel ({
-		id: req.body.id,
-		assignTo: '',
-		callback: req.body.callback
-	});
+	const nTask = {
+		'id': req.body.id,
+		'assignTo': '',
+		'callback': req.headers.cpee-callback
+	};
 	var file = './data/tasklist.json';
 	var tasks = JSON.parse(fs.readFileSync(file).toString());
-	tasks.push(nTask)
+	console.log(tasks);
+	tasks.push(nTask);
 	fs.writeFileSync(file, JSON.stringify(tasks));
 	res.send("New task added");
 	//list =JSON.parse(tasklist);
@@ -84,6 +87,7 @@ app.get('/ui/:id', (req, res) => {
 	}
 	var file = './data/tasklist.json';
 	var tasks = JSON.parse(fs.readFileSync(file).toString());
+	console.log(tasks);
 	res.json(tasks);
 	/*
 	//get task list
@@ -145,9 +149,21 @@ app.delete('/task/:id', (req, res) => {
 		index++;
 	}
 	if(found) {
+		dTask = tasks[index];
 		tasks.splice(index,1);
 		console.log(tasks);
 		fs.writeFileSync(file, JSON.stringify(tasks));
+		axios
+		.post(dTask.callback, {
+			message: 'task removed'
+		})
+		.then(res => {
+			console.log(`statusCode: ${res.status}`);
+			console.log(res);
+		})
+		.catch(error => {
+			console.error(error);
+		});
 		res.send("task deleted");
 	}
 
