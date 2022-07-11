@@ -1,5 +1,6 @@
 // create server obj
 const express = require('express');
+const fs = require('fs');
 const app = express();
 
 //body parser
@@ -10,23 +11,18 @@ app.use(express.json());
 app.use(express.static(__dirname+'/res'))
 
 //DB
-const org = require('./orgmodel.xml')
-const parser = new DOMParser();
-const xmlDoc = parser.parseFromString(org,"text/xml");
-const db = require('./models');
+//const db = require('./models');
+const tasklist = require('./data/tasklist.json')
 
 //routes
 //HTML Endpoints
 app.get('/ui', function homepage(req, res) {
-	res.sendFile(__dirname + '/res/index.html');
+	res.sendFile(__dirname + '/views/index.html');
   });
 
 //APIs endpoints
 app.get('/', (req, res) => {
 	res.json({
-	  //message: 'Welcome to my app api!',
-	  //documentationUrl: '', //leave this also blank for the first exercise
-	  //baseUrl: '', //leave this blank for the first exercise
 	  endpoints: [
 		{method: 'POST', path: '/add', description: 'add new task'},
 		{method: 'GET', path: '/ui', description: 'return task list'},
@@ -44,13 +40,22 @@ app.post('/add', (req, res) => {
 	//create new task
 	const nTask = new TasksModel ({
 		id: req.body.id,
-		assignTo: ''
+		assignTo: '',
+		callback: req.body.callback
 	});
+	var file = './data/tasklist.json';
+	var tasks = JSON.parse(fs.readFileSync(file).toString());
+	tasks.push(nTask)
+	fs.writeFileSync(file, JSON.stringify(tasks));
+	res.send("New task added");
+	//list =JSON.parse(tasklist);
+	//list.push(nTask)
+	/*
 	db.tasks.create(req.body, (err, nTask) => {
 		if (err) throw err;
 		res.send("New task added");
 	});
-	
+	*/
 });
 
 //return ui
@@ -60,28 +65,33 @@ app.get('/ui', (req, res) => {
 	res.sendFile(__dirname + '/res/index.html');
 });
 
-//return all task
-app.get('/api/tasks/', (req, res) => {
-	db.tasks.find({}, function (err, tasks) {
-	  if (err) throw err;
-	  res.json(tasks);
-	});
-});
-
-//return tasklist for specific marnr
-app.get('/ui/:matnr', (req, res) => {
+app.get('/ui/:id', (req, res) => {
+	console.log(req)
 	const mat = req.params.id
-    var value = $(xmlDoc).find('tester[id="'+mat+'"]');
-	console.log(value);
-	if (value == null || value=='') {
+	const org = './orgmodel.xml';
+	let xmlDoc = fs.readFileSync(org, "utf8");
+	let arr = xmlDoc.split(/\r?\n/);
+	var found = false;
+	arr.forEach((line, idx)=> {
+		if(line.includes(mat)){
+			found = true;
+		}
+	});
+	console.log(found);
+	if (!found) {
 		res.send("No such tester.");
 		return;
 	}
+	var file = './data/tasklist.json';
+	var tasks = JSON.parse(fs.readFileSync(file).toString());
+	res.json(tasks);
+	/*
 	//get task list
 	db.tasks.find({}, function (err, tasks) {
 		if (err) throw err;
 		res.json(tasks);
 	});
+	list =JSON.parse(tasklist);*/
 	/*
 	db.tasks.find({_id: mat}, function (err, tasks) {
 		if (err) throw err;
@@ -94,40 +104,63 @@ app.put('/task/:id', (req, res) => {
 	//debug info
 	console.log(req.body);
 	const taskId = req.params.id;
-	if (req.task == 'take') {
-		const taskNewInfo = req.body;
-		console.log(`task ID = ${taskId} \n Assignee = ${taskAssignee}`);
-		db.tasks.findOneAndUpdate({_id: taskId}, taskNewInfo, {new: true},
-									(err, updatedTaskInfo) => {
-			if (err) throw err;
-			res.json(updatedTaskInfo);
-		});
+	const taskAssignee = req.body.assignTo;
+	console.log(`task ID = ${taskId} \n Assignee = ${taskAssignee}`);
+	//fs = require('fs');
+	var file = './data/tasklist.json';
+	var tasks = JSON.parse(fs.readFileSync(file).toString());
+	for (const item of tasks) {
+		if (taskId==item.id){
+			item.assignTo = taskAssignee;
+			console.log(item);
+			updatedTaskInfo = item;
+			break;
+		}
 	}
+	console.log("updated:")
+	console.log(updatedTaskInfo);
+	fs.writeFileSync(file, JSON.stringify(tasks));
+	res.json(updatedTaskInfo);
 	/*
-	if (req.task == 'return') {
-		const taskNewInfo = req.body;
-		console.log(`task ID = ${taskId}`);
-		db.tasks.findOneAndUpdate({_id: taskId}, taskNewInfo, {new: true},
-									(err, updatedTaskInfo) => {
-			if (err) throw err;
-			res.json(updatedTaskInfo);
-		});
-	}*/
+	db.tasks.findOneAndUpdate({_id: taskId}, taskNewInfo, {new: true},
+								(err, updatedTaskInfo) => {
+		if (err) throw err;
+		res.json(updatedTaskInfo);
+	});*/
 });
 
 app.delete('/task/:id', (req, res) => {
 	//debug info
 	console.log(req.body);
 	const taskId = req.params.id;
+	var file = './data/tasklist.json';
+	var tasks = JSON.parse(fs.readFileSync(file).toString());
+	var index = 0;
+	var found = false;
+	for (const item of tasks) {
+		if (taskId==item.id){
+			found=true;
+			break;
+		}
+		index++;
+	}
+	if(found) {
+		tasks.splice(index,1);
+		console.log(tasks);
+		fs.writeFileSync(file, JSON.stringify(tasks));
+		res.send("task deleted");
+	}
+
+	/*
 	db.tasks.findOneAndRemove({_id: taskId}, (err, deletedTask) => {
 		if (err) throw err;
 		res.json(deletedTask);
-	});
+	});*/
 });
 
 
 //SERVER 
 // listen on the port 
-app.listen(process.env.PORT || 123456, () => {
-	console.log('Express server is up and running on http://localhost:3000/');
+app.listen(process.env.PORT || 12345, () => {
+	console.log('Express server is up and running on http://localhost:12345/');
   });
