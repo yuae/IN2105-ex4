@@ -50,7 +50,7 @@ app.post('/add', (req, res) => {
 	//console.log(tasks);
 	tasks.push(nTask);
 	fs.writeFileSync(file, JSON.stringify(tasks));
-	res.send("Task"+req.body.id+"added");
+	res.send("Task "+req.body.id+" added");
 	//list =JSON.parse(tasklist);
 	//list.push(nTask)
 	/*
